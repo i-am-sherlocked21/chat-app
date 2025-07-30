@@ -68,11 +68,14 @@ app.use("/api/messages", messageRouter);
 const startServer = async () => {
   try {
     await connectDB(); // MongoDB connection
+    console.log("✅ Connected to MongoDB");
 
-    const PORT = process.env.PORT || 5000;
-    server.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
-    });
+    if (process.env.NODE_ENV !== "production") {
+      const PORT = process.env.PORT || 3000;
+      server.listen(PORT, () =>
+        console.log(`🚀 Server running at http://localhost:${PORT}`)
+      );
+    }
   } catch (error) {
     console.error("❌ Error starting server:", error.message);
   }
@@ -80,5 +83,4 @@ const startServer = async () => {
 
 startServer();
 
-// Required by Vercel
 export default server;
