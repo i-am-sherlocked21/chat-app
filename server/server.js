@@ -1,9 +1,7 @@
-
-// import "dotenv/config";
 import dotenv from "dotenv";
 dotenv.config();
 
-import express from 'express';
+import express from "express";
 import cors from "cors";
 import http from "http";
 import { connectDB } from './lib/db.js';
@@ -24,40 +22,29 @@ export const io = new Server(server, {
 
 export const userSocketMap = {};
 
-// Socket connection handler
-// const userSocketMap = {}; // Move this to a higher scope if not already
-
 io.on("connection", (socket) => {
   const userId = socket.handshake.query.userId;
   console.log("🔌 User connected:", userId);
 
   if (userId) {
-    // 🧠 If the user logs in from another tab/browser, this will override the old socket
     userSocketMap[userId] = socket.id;
-
-    // 📡 Emit the updated list of online users
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
   }
 
-  // 📴 Handle disconnection
   socket.on("disconnect", () => {
     console.log("❌ User disconnected:", userId);
-
-    // 🔍 Only remove if this is the current socket for this user
     if (userId && userSocketMap[userId] === socket.id) {
       delete userSocketMap[userId];
     }
-
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
   });
 });
 
-
-// --- Middlewares ---
+// --- Middleware ---
 app.use(express.json({ limit: "4mb" }));
 app.use(cors());
 
-// --- Test Route ---
+// --- Test Routes ---
 app.get("/", (req, res) => {
   res.send("✅ Server is up. Use /api/status to check status.");
 });
@@ -66,7 +53,14 @@ app.get("/api/status", (req, res) => {
   res.send("✅ Server is live");
 });
 
-// --- Routes ---
+app.get("/api/debug", (req, res) => {
+  res.json({
+    env: process.env.NODE_ENV,
+    message: "This is running on Vercel!",
+  });
+});
+
+// --- Main Routes ---
 app.use("/api/auth", userRoutes);
 app.use("/api/messages", messageRouter);
 
@@ -75,13 +69,10 @@ const startServer = async () => {
   try {
     await connectDB(); // MongoDB connection
 
-    if(process.env.NODE_ENV !== "production")
-    {
-      const PORT = process.env.PORT || 5000;
-    server.listen(PORT, () =>
-      console.log(`🚀 Server running at http://localhost:${PORT}`)
-    );
-    }
+    const PORT = process.env.PORT || 5000;
+    server.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
   } catch (error) {
     console.error("❌ Error starting server:", error.message);
   }
@@ -89,5 +80,5 @@ const startServer = async () => {
 
 startServer();
 
-//for vercel
+// Required by Vercel
 export default server;
