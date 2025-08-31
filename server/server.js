@@ -41,8 +41,38 @@ io.on("connection", (socket) => {
 });
 
 // --- Middleware ---
-app.use(express.json({ limit: "4mb" }));
+
+// ✅ CORS Fix including custom 'token' header
+const allowedOrigins = [
+  "http://localhost:5173", // React dev server
+  "https://chat-app-omega-blue.vercel.app", // deployed frontend
+];
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, DELETE, OPTIONS"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization, token"
+  ); // ✅ Added token header
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
+// Keep your existing cors middleware (optional)
 app.use(cors());
+
+app.use(express.json({ limit: "4mb" }));
 
 // --- Test Routes ---
 app.get("/", (req, res) => {
