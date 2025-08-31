@@ -42,7 +42,7 @@ io.on("connection", (socket) => {
 
 // --- Middleware ---
 
-// ✅ Proper CORS setup for Vercel deployment
+// ✅ Proper CORS setup for localhost + deployed frontend
 const allowedOrigins = [
   "http://localhost:5173",
   "https://chat-app-omega-blue.vercel.app"
@@ -84,21 +84,25 @@ app.get("/api/debug", (req, res) => {
 app.use("/api/auth", userRoutes);
 app.use("/api/messages", messageRouter);
 
-// --- Start Server ---
-const startServer = async () => {
-  try {
-    await connectDB(); // MongoDB connection
-    console.log("✅ Connected to MongoDB");
+// --- Start Server (local dev only) ---
+if (process.env.NODE_ENV !== "production") {
+  const startServer = async () => {
+    try {
+      await connectDB(); // MongoDB connection
+      console.log("✅ Connected to MongoDB");
 
-    const PORT = process.env.PORT || 5000;
-    server.listen(PORT, () =>
-      console.log(`🚀 Server running at http://localhost:${PORT}`)
-    );
-  } catch (error) {
-    console.error("❌ Error starting server:", error.message);
-  }
-};
+      const PORT = process.env.PORT || 5000;
+      server.listen(PORT, () =>
+        console.log(`🚀 Server running at http://localhost:${PORT}`)
+      );
+    } catch (error) {
+      console.error("❌ Error starting server:", error.message);
+    }
+  };
 
-startServer();
+  startServer();
+}
 
-export default server;
+// ✅ Export app for Vercel deployment (serverless)
+export default app;
+
