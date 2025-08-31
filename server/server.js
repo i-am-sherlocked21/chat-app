@@ -42,10 +42,10 @@ io.on("connection", (socket) => {
 
 // --- Middleware ---
 
-// ✅ CORS Fix including custom 'token' header
+// ✅ Only CORS fix applied
 const allowedOrigins = [
-  "http://localhost:5173", // React dev server
-  "https://chat-app-omega-blue.vercel.app", // deployed frontend
+  "http://localhost:5173",                    // dev frontend
+  "https://chat-app-omega-blue.vercel.app"   // deployed frontend
 ];
 
 app.use((req, res, next) => {
@@ -60,17 +60,12 @@ app.use((req, res, next) => {
   res.setHeader(
     "Access-Control-Allow-Headers",
     "Content-Type, Authorization, token"
-  ); // ✅ Added token header
+  ); // include custom headers like token
   res.setHeader("Access-Control-Allow-Credentials", "true");
 
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
-  }
+  if (req.method === "OPTIONS") return res.sendStatus(200);
   next();
 });
-
-// Keep your existing cors middleware (optional)
-app.use(cors());
 
 app.use(express.json({ limit: "4mb" }));
 
@@ -100,12 +95,10 @@ const startServer = async () => {
     await connectDB(); // MongoDB connection
     console.log("✅ Connected to MongoDB");
 
-    if (process.env.NODE_ENV !== "production") {
-      const PORT = process.env.PORT || 3000;
-      server.listen(PORT, () =>
-        console.log(`🚀 Server running at http://localhost:${PORT}`)
-      );
-    }
+    const PORT = process.env.PORT || 5000;
+    server.listen(PORT, () =>
+      console.log(`🚀 Server running at http://localhost:${PORT}`)
+    );
   } catch (error) {
     console.error("❌ Error starting server:", error.message);
   }
