@@ -15,7 +15,7 @@ const server = http.createServer(app);
 // --- Socket.IO Setup ---
 export const io = new Server(server, {
   cors: {
-    origin: "*", // You can restrict this to your frontend URL
+    origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE"],
   },
 });
@@ -42,30 +42,25 @@ io.on("connection", (socket) => {
 
 // --- Middleware ---
 
-// ✅ Only CORS fix applied
+// ✅ Proper CORS setup for Vercel deployment
 const allowedOrigins = [
-  "http://localhost:5173",                    // dev frontend
-  "https://chat-app-omega-blue.vercel.app"   // deployed frontend
+  "http://localhost:5173",
+  "https://chat-app-omega-blue.vercel.app"
 ];
 
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-  }
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, DELETE, OPTIONS"
-  );
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Authorization, token"
-  ); // include custom headers like token
-  res.setHeader("Access-Control-Allow-Credentials", "true");
-
-  if (req.method === "OPTIONS") return res.sendStatus(200);
-  next();
-});
+app.use(cors({
+  origin: function(origin, callback){
+    if(!origin) return callback(null, true); // allow server-to-server requests
+    if(allowedOrigins.indexOf(origin) === -1){
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  methods: ["GET","POST","PUT","DELETE","OPTIONS"],
+  allowedHeaders: ["Content-Type","Authorization","token"],
+  credentials: true
+}));
 
 app.use(express.json({ limit: "4mb" }));
 
